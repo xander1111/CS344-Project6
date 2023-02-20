@@ -4,8 +4,9 @@
 
 #define ALIGNMENT 16
 #define GET_PAD(x) ((ALIGNMENT - 1) - (((x) - 1) & (ALIGNMENT - 1)))
-
 #define PADDED_SIZE(x) ((x) + GET_PAD(x))
+
+#define PTR_OFFSET(p, offset) ((void*)((char *)(p) + (offset)))
 
 
 struct block {
@@ -25,7 +26,15 @@ void* myalloc(int size) {
         head->in_use = 0;
     }
 
+    struct block* current = head;
 
+    do {
+        if (!current->in_use && current->size >= size) {
+            current->in_use = 1;
+
+            return PTR_OFFSET(current, PADDED_SIZE(sizeof(struct block)));
+        }
+    } while (current->next != NULL);
 
     return NULL;
 }
