@@ -66,6 +66,12 @@ void* myalloc(int size) {
 }
 
 
+void myfree(void* to_free) {
+    struct block* block_to_free = PTR_OFFSET(to_free, -1 * PADDED_BLOCK);
+    block_to_free->in_use = 0;
+}
+
+
 void print_data(void)
 {
     struct block *b = head;
@@ -99,6 +105,10 @@ int main(void)
     test = myalloc(60);
     print_data();
     test2 = myalloc(60);
+    print_data();
+    myfree(test);
+    print_data();
+    myfree(test2);
     print_data();
 }
 
