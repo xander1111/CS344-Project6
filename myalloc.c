@@ -20,6 +20,40 @@ struct block {
 struct block* head;
 
 
+void split_space(struct block* to_split, int size) {
+    if (to_split->size > size + PADDED_BLOCK) {
+        struct block* new_block = PTR_OFFSET(to_split, size + PADDED_BLOCK);
+        new_block->next = to_split->next;
+        new_block->size = to_split->size - size - PADDED_BLOCK;
+        new_block->in_use = 0;
+
+        to_split->next = new_block;
+    }
+}
+
+
+void* find_space(int size) {
+    size = PADDED_SIZE(size);
+
+    struct block* current = head;
+
+    do {
+        if (!current->in_use && current->size >= size) {
+            split_space(current, size);
+
+            current->in_use = 1;
+            current->size = size;
+
+            return PTR_OFFSET(current, PADDED_BLOCK);
+        } else {
+            current = current->next;
+        }
+    } while (current != NULL);
+
+    return NULL;
+}
+
+
 void* myalloc(int size) {
     if (head == NULL) {
         head = mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
@@ -28,17 +62,7 @@ void* myalloc(int size) {
         head->in_use = 0;
     }
 
-    struct block* current = head;
-
-    do {
-        if (!current->in_use && current->size >= size) {
-            current->in_use = 1;
-
-            return PTR_OFFSET(current, PADDED_BLOCK);
-        }
-    } while (current->next != NULL);
-
-    return NULL;
+    return find_space(size);
 }
 
 
@@ -69,11 +93,12 @@ void print_data(void)
 int main(void)
 {
     void* test;
+    void* test2;
 
     print_data();
-    test = myalloc(64);
+    test = myalloc(60);
     print_data();
-    test = myalloc(64);
-    printf("%p\n", test);
+    test2 = myalloc(60);
+    print_data();
 }
 
