@@ -8,6 +8,8 @@
 
 #define PTR_OFFSET(p, offset) ((void*)((char *)(p) + (offset)))
 
+#define PADDED_BLOCK PADDED_SIZE(sizeof(struct block))
+
 
 struct block {
     struct block* next;
@@ -22,7 +24,7 @@ void* myalloc(int size) {
     if (head == NULL) {
         head = mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
         head->next = NULL;
-        head->size = 1024 - PADDED_SIZE(sizeof(struct block));
+        head->size = 1024 - PADDED_BLOCK;
         head->in_use = 0;
     }
 
@@ -32,7 +34,7 @@ void* myalloc(int size) {
         if (!current->in_use && current->size >= size) {
             current->in_use = 1;
 
-            return PTR_OFFSET(current, PADDED_SIZE(sizeof(struct block)));
+            return PTR_OFFSET(current, PADDED_BLOCK);
         }
     } while (current->next != NULL);
 
