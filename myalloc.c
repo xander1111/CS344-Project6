@@ -72,8 +72,7 @@ void myfree(void* to_free) {
 }
 
 
-void print_data(void)
-{
+void print_data(void) {
     struct block *b = head;
 
     if (b == NULL) {
@@ -96,8 +95,7 @@ void print_data(void)
 }
 
 
-int main(void)
-{
+int main(void) {
     void* test;
     void* test2;
 
