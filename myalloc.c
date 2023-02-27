@@ -29,6 +29,8 @@ void split_space(struct block* to_split, int size) {
         new_block->size = to_split->size - size - PADDED_BLOCK;
         new_block->in_use = 0;
 
+        if (to_split->next) to_split->next->prev = new_block;
+
         to_split->next = new_block;
     }
 }
