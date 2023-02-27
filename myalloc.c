@@ -13,8 +13,9 @@
 
 struct block {
     struct block* next;
+    struct block* prev;
     int size;
-    int in_use;
+    short in_use;
 };
 
 struct block* head;
@@ -24,6 +25,7 @@ void split_space(struct block* to_split, int size) {
     if (to_split->size > size + PADDED_BLOCK) {
         struct block* new_block = PTR_OFFSET(to_split, size + PADDED_BLOCK);
         new_block->next = to_split->next;
+        new_block->prev = to_split;
         new_block->size = to_split->size - size - PADDED_BLOCK;
         new_block->in_use = 0;
 
@@ -54,10 +56,19 @@ void* find_space(int size) {
 }
 
 
+void merge_blocks(struct block* to_merge) {
+    if (to_merge && !to_merge->in_use && to_merge->next && !to_merge->next->in_use) {
+        to_merge->size = to_merge->size + to_merge->next->size + PADDED_BLOCK;
+        to_merge->next = to_merge->next->next;
+    }
+}
+
+
 void* myalloc(int size) {
     if (head == NULL) {
         head = mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
         head->next = NULL;
+        head->prev = NULL;
         head->size = 1024 - PADDED_BLOCK;
         head->in_use = 0;
     }
@@ -69,6 +80,8 @@ void* myalloc(int size) {
 void myfree(void* to_free) {
     struct block* block_to_free = PTR_OFFSET(to_free, -1 * PADDED_BLOCK);
     block_to_free->in_use = 0;
+    merge_blocks(block_to_free);
+    merge_blocks(block_to_free->prev);
 }
 
 
@@ -96,6 +109,9 @@ void print_data(void) {
 
 
 int main(void) {
+    printf("block byte size: %d\n", sizeof(struct block));
+    printf("padded block byte size: %d\n", PADDED_BLOCK);
+
     void* test;
     void* test2;
 
