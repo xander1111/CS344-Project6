@@ -62,6 +62,8 @@ void merge_blocks(struct block* to_merge) {
     if (to_merge && !to_merge->in_use && to_merge->next && !to_merge->next->in_use) {
         to_merge->size = to_merge->size + to_merge->next->size + PADDED_BLOCK;
         to_merge->next = to_merge->next->next;
+        
+        if (to_merge->next) to_merge->next->prev = to_merge;
     }
 }
 
